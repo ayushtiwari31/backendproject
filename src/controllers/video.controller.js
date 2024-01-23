@@ -95,6 +95,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
 })//done
 
+
 const publishAVideo = asyncHandler(async (req, res) => { 
     const { title, description} = req.body
     // TODO: get video, upload to cloudinary, create video
@@ -153,6 +154,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
     )
 
 })//done
+
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
@@ -285,17 +287,121 @@ const getVideoById = asyncHandler(async (req, res) => {
 const updateVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: update video details like title, description, thumbnail
+    const {title,description}=req.body;
 
-})
+    if(!isValidObjectId(videoId))
+    {
+        throw new ApiError(400,"videoId is not valid!!")
+    }
+
+    if(!(title && description))
+    {
+        throw new ApiError(400,"title and description is required");
+    }
+
+    const video=await Video.findById(videoId);
+
+    if(!video)
+    {
+        throw new ApiError(400,"Video not found");
+    }
+
+    //checking if you are owner or not
+
+    if(video?.owner.toString()!==req.user?._id.toString())
+    {
+        throw new ApiError(400,"You are not owner of this video")
+    }
+
+    const thumbnailLocalPath=req.file?.path;
+
+    if (!thumbnailLocalPath) {
+        throw new ApiError(400, "thumbnail is required");
+    }
+
+    const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
+
+    const updatedVideo=await Video.findByIdAndUpdate(
+        videoId,
+        {
+            $set:{
+                title,
+                description,
+                thumbnail:thumbnail.url
+            }
+        },
+        {
+            new:true
+        }
+    )
+
+    if (!updatedVideo) {
+        throw new ApiError(500, "Failed to update video please try again");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200,updatedVideo,"Video updated successfully!!")
+    )
+})//done
+
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: delete video
-})
+    if(!isValidObjectId(videoId))
+    {
+        throw new ApiError(400,"Invalid videoId!!");
+    }
+
+    const video=await Video.findById(videoId);
+    if(video?.owner.toString()!==req.user?._id.toString())
+    {
+        throw new ApiError(400,"You don't have access to delete this video");
+    }
+
+    await Video.findByIdAndDelete(videoId);
+
+    return res.status(200).json(
+        new ApiResponse(200,"Video deleted successfully")
+    )
+})//done
+
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-})
+
+    if(!isValidObjectId(videoId))
+    {
+        throw new ApiError(400,"Invalid videoId");
+    }
+
+    const video=await Video.findById(videoId);
+
+    if(video?.owner.toString()!==req.user?._id.toString())
+    {
+        throw new ApiError(400,"You are not owner of this video");
+    }
+
+    const toggledVideo=await findByIdAndUpdate(videoId,{
+        $set:{
+            isPublished : !video?.isPublished
+        }
+    },
+    {
+        new:true
+    })
+
+    if(!toggledVideo)
+    {
+        throw new ApiError(500,"Unable to toggle video");
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200,toggledVideo,"IsPublished toggled successfully")
+    )
+
+
+})//done
 
 export {
     getAllVideos,
