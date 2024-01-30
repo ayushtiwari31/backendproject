@@ -3,12 +3,22 @@ import cors from "cors"
 import cookieParser from "cookie-parser"
 import morgan from "morgan";
 
+
+//added later
+// import {upload} from "./middlewares/multer.middleware.js"
+// import { registerUser } from "./controllers/user.controller.js";
+
+
 const app = express()
 
 app.use(cors({
     origin: process.env.CORS_ORIGIN,
     credentials: true
 }))
+
+
+
+
 
 app.use(express.json({limit: "50kb"}))
 app.use(express.urlencoded({extended: true, limit: "16kb"}))
@@ -29,6 +39,19 @@ import playlistRouter from "./routes/playlist.routes.js"
 import dashboardRouter from "./routes/dashboard.routes.js"
 
 //routes declaration
+
+//added later
+// app.post("/auth/register",upload.single("avatar"),(req, res) => {
+//     console.log("Received POST request to /auth/register");
+//     console.log("Request Body:", req.body);
+//     console.log("File:", req.file);
+  
+//     registerUser(req, res); // Make sure this function is logging any errors
+  
+//     console.log("Finished processing POST request");
+//   })
+
+
 app.use("/api/v1/healthcheck", healthcheckRouter)
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/tweets", tweetRouter)

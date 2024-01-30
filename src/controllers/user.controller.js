@@ -23,7 +23,6 @@ const generateAndRefreshTokens=async(userId)=>{
     }
 }
 
-
 const registerUser=asyncHandler(async (req,res)=>{
    //get user details from frontend
    //validation
@@ -35,8 +34,10 @@ const registerUser=asyncHandler(async (req,res)=>{
    //check for user creation
    //return res
 
-   const {fullName,email,username,password}=req.body
-  // console.log(email);
+   const {fullName,email,username,password}=req.body;
+
+   console.log("you have reached here");
+
    if([fullName,email,username,password].some((field)=>
    field?.trim()==="")
    ){
@@ -79,7 +80,6 @@ const registerUser=asyncHandler(async (req,res)=>{
     email,
     password,
     username:username.toLowerCase()
-
    })
 
    const createdUser=await User.findById(user._id).select("-password -refreshToken" )// in select - represent which we dont want 
